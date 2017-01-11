@@ -14,7 +14,7 @@ const people = wrap(db.get('people'));
 
 //gdyby ta funkcja byla po routach to nigdy by tu nie wpadlo
 // bez next taka funkcja zakonczyla by przetewarzanie i zablokowala dalszy flow
-app.use(function *Time (next){
+app.use(function *Time(next) {
     console.log('log log')
     var start = new Date;
     //przekazuje kontrole dalej by potem wrocic po wykonaniu funkcji wystepujacych pozniej
@@ -27,14 +27,24 @@ app.use(function *Time (next){
     //mozna uzywac this.XXX bez response/request na dorba sprawe
 
     // np this.response.body zmieniamy na :
-    this.body = `${JSON.stringify(this.body)} \n ${start}`;
+    this.body = `${JSON.stringify(this.body)} \n ${result}`;
 });
 
 app.use(route.post("/person", savePerson));
 app.use(route.get("/person/:id", getPerson));
 
+app.use(route.get("/promise", function*() {
+    let result = yield (function () {
+        return new Promise((res) => {
+            setTimeout(() => {
+                res(' done');
+            }, 2000)
+        });
+    })();
+    this.body = 'works' + result;
+}));
 // obojetne jaki route - lapie wszystko co nie wpadnie w to co wyzej i nie puszcza dalej
-app.use(function * (){
+app.use(function *() {
     this.body = "test test";
 });
 
@@ -50,8 +60,8 @@ function *savePerson() {
     this.status = 201;
 }
 
-function *getPerson(id){
-    console.log('ideeee',id)
+function *getPerson(id) {
+    console.log('ideeee', id)
     var person = yield people.findOne({_id: id});
 
     this.body = person || 'not found';
